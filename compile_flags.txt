@@ -1,0 +1,4 @@
+-lraylib
+
+-std=c++20
+-Wall

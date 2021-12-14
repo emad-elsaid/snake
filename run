@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -e
+
+pkg-config --cflags --libs raylib | sed "s/ /\n/g" > compile_flags.txt
+echo "-std=c++20" >> compile_flags.txt
+echo "-Wall" >> compile_flags.txt
+clang++ main.cpp -o main `cat compile_flags.txt`
+./main
