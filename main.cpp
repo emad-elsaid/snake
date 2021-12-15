@@ -35,7 +35,7 @@ int main(void) {
   Direction West = {-1, 0};
 
   State state = Running;
-  const int dotSize = 10;
+  const int dotSize = 16;
   const int screenWidth = 50;
   const int screenHeight = 50;
 
@@ -51,6 +51,13 @@ int main(void) {
   auto speed = 10;
 
   InitWindow((screenWidth+1)*dotSize, (screenHeight+1)*dotSize, "SNAKE");
+
+  Image image = LoadImage("assets/food.png");
+  Texture2D foodTexture = LoadTextureFromImage(image);
+  UnloadImage(image);
+  int foodFrames = 5;
+  int foodCurrentFrame = 0;
+  float foodFrameWidth = static_cast<float>(float(foodTexture.width) / foodFrames);
 
   SetTargetFPS(speed);
 
@@ -94,7 +101,17 @@ int main(void) {
     {
       ClearBackground(RAYWHITE);
       for (auto &d : snake) DrawRectangle(d.x * dotSize, d.y * dotSize, dotSize, dotSize, GOLD);
-      DrawRectangle(food.x * dotSize, food.y * dotSize, dotSize, dotSize, RED);
+
+      foodCurrentFrame = (foodCurrentFrame+1) % foodFrames;
+      Rectangle foodFrame = {
+          foodCurrentFrame*foodFrameWidth,
+          0,
+          foodFrameWidth,
+          float(foodTexture.height)
+      };
+
+      DrawTextureRec(foodTexture, foodFrame, {float(food.x*dotSize), float(food.y*dotSize)}, WHITE);
+
       DrawText(("SCORE: " + std::to_string(score)).c_str(), 10, 10, 20, BLACK);
 
       if (state == GameOver)
