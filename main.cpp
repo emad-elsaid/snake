@@ -1,10 +1,8 @@
 #include "raylib.h"
 #include <random>
-#include <tuple>
 #include <vector>
 
 using std::vector;
-using std::tie;
 
 struct Dot {
   int x;
@@ -16,12 +14,17 @@ struct Direction {
   int y;
 };
 
-bool operator!=(const Direction &p_lhs, const Direction &p_rhs) {
-  return tie(p_lhs.x, p_lhs.y) != tie(p_rhs.x, p_rhs.y);
+bool operator!=(const Direction &l, const Direction &r) {
+  return l.x != r.x || l.y != r.y;
 }
-bool operator==(const Direction &p_lhs, const Direction &p_rhs) {
-  return tie(p_lhs.x, p_lhs.y) == tie(p_rhs.x, p_rhs.y);
+bool operator==(const Direction &l, const Direction &r) {
+  return l.x == r.x && l.y == r.y;
 }
+
+struct Snake {
+  vector<Dot> dots;
+  Direction direction;
+};
 
 enum State {
   Running,
@@ -46,9 +49,8 @@ int main(void) {
 
   Dot food{WRNG(gen), HRNG(gen)};
   auto score = 0;
-  auto snakeDirection = East;
-  auto snake = vector<struct Dot>(5, {0, 0});
   auto speed = 10;
+  Snake snake = {vector<Dot>(5, {0, 0}), East};
 
   InitWindow((screenWidth+1)*dotSize, (screenHeight+1)*dotSize, "SNAKE");
 
@@ -63,26 +65,26 @@ int main(void) {
 
   while (!WindowShouldClose()) {
 
-    auto &head = snake.at(0);
-    Dot newHead = { head.x + snakeDirection.x, head.y + snakeDirection.y };
+    auto &head = snake.dots.at(0);
+    Dot newHead = { head.x + snake.direction.x, head.y + snake.direction.y };
 
     // Controls
-    if (IsKeyPressed(KEY_DOWN) && snakeDirection != North) snakeDirection = South;
-    else if (IsKeyPressed(KEY_UP) && snakeDirection != South) snakeDirection = North;
-    else if (IsKeyPressed(KEY_RIGHT) && snakeDirection != West) snakeDirection = East;
-    else if (IsKeyPressed(KEY_LEFT) && snakeDirection != East) snakeDirection = West;
+    if (IsKeyPressed(KEY_DOWN) && snake.direction != North) snake.direction = South;
+    else if (IsKeyPressed(KEY_UP) && snake.direction != South) snake.direction = North;
+    else if (IsKeyPressed(KEY_RIGHT) && snake.direction != West) snake.direction = East;
+    else if (IsKeyPressed(KEY_LEFT) && snake.direction != East) snake.direction = West;
 
     // Collisions
     if(newHead.x == -1  || newHead.x == screenWidth+1  || newHead.y == -1  || newHead.y == screenHeight+1)
       state = GameOver;
 
-    for(auto& d:snake)
+    for(auto& d:snake.dots)
       if(newHead.x == d.x && newHead.y == d.y)
         state = GameOver;
 
-    if (food.x == head.x + snakeDirection.x &&
-        food.y == head.y + snakeDirection.y) {
-      snake.push_back({});
+    if (food.x == head.x + snake.direction.x &&
+        food.y == head.y + snake.direction.y) {
+      snake.dots.push_back({});
       food.x = WRNG(gen);
       food.y = HRNG(gen);
       score += 100;
@@ -92,15 +94,15 @@ int main(void) {
 
     // Update
     if(state == Running) {
-      snake.insert(snake.begin(), newHead);
-      snake.pop_back();
+      snake.dots.insert(snake.dots.begin(), newHead);
+      snake.dots.pop_back();
     }
 
     // Draw
     BeginDrawing();
     {
       ClearBackground(RAYWHITE);
-      for (auto &d : snake) DrawRectangle(d.x * dotSize, d.y * dotSize, dotSize, dotSize, GOLD);
+      for (auto &d : snake.dots) DrawRectangle(d.x * dotSize, d.y * dotSize, dotSize, dotSize, GOLD);
 
       foodCurrentFrame = (foodCurrentFrame+1) % foodFrames;
       Rectangle foodFrame = {
