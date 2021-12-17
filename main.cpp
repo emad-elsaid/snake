@@ -54,9 +54,7 @@ int main(void) {
 
   InitWindow((screenWidth+1)*dotSize, (screenHeight+1)*dotSize, "SNAKE");
 
-  Image image = LoadImage("assets/food.png");
-  Texture2D foodTexture = LoadTextureFromImage(image);
-  UnloadImage(image);
+  auto foodTexture = LoadTexture("assets/food.png");
   int foodFrames = 5;
   int foodCurrentFrame = 0;
   float foodFrameWidth = static_cast<float>(float(foodTexture.width) / foodFrames);
@@ -113,8 +111,7 @@ int main(void) {
       };
 
       DrawTextureRec(foodTexture, foodFrame, {float(food.x*dotSize), float(food.y*dotSize)}, WHITE);
-
-      DrawText(("SCORE: " + std::to_string(score)).c_str(), 10, 10, 20, BLACK);
+      DrawText(("SCORE: " + std::to_string(score)).c_str(), dotSize, dotSize, 20, BLACK);
 
       if (state == GameOver)
         DrawText("GAME OVER", GetScreenWidth() / 2 - 80, GetScreenHeight() / 2, 20, BLACK);
