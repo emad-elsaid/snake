@@ -5,8 +5,7 @@
 using std::vector;
 
 struct Dot {
-  int x;
-  int y;
+  int x, y;
 };
 
 struct Direction {
