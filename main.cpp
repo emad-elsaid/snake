@@ -1,46 +1,29 @@
 #include "raylib.h"
+#include "raymath.h"
 #include <random>
 #include <vector>
 
-using std::vector;
+bool operator!=(const Vector2 &l, const Vector2 &r) { return l.x != r.x || l.y != r.y; };
 
-struct Dot {
-  int x, y;
-};
-
-struct Direction {
-  int x, y;
-};
-
-bool operator!=(const Direction &l, const Direction &r) {
-  return l.x != r.x || l.y != r.y;
-}
-bool operator==(const Direction &l, const Direction &r) {
-  return l.x == r.x && l.y == r.y;
-}
-
-class LimitedInt {
+class SpinningInt {
+  int v, max;
 public:
-  LimitedInt(int max) : v {0}, max {max}{};
+  SpinningInt(int max) : v {0}, max {max}{};
   operator int() const { return v; };
-  LimitedInt& operator++(int) {
-    v++;
-    v %= max;
+  SpinningInt& operator++(int) {
+    v = (v+1) % max;
     return *this;
   };
-
-private:
-  int v, max;
 };
 
 struct Snake {
-  vector<Dot> dots;
-  Direction direction;
+  std::vector<Vector2> dots;
+  Vector2 direction;
 };
 
 struct Sprite {
   Texture texture;
-  LimitedInt frame;
+  SpinningInt frame;
   float frameWidth;
 };
 
@@ -50,30 +33,30 @@ enum State {
 };
 
 template <int min, int max>
-int ConstrainedRNG() {
+float ConstrainedRNG() {
   static std::random_device rd;
   static std::mt19937 gen(rd());
   static std::uniform_int_distribution<int> rng(min, max);
-  return rng(gen);
+  return static_cast<float>(rng(gen));
 }
 
 int main(void) {
-  const int dotSize = 16;
-  const int screenWidth = 50;
-  const int screenHeight = 50;
+  const auto dotSize = 16;
+  const auto screenWidth = 50;
+  const auto screenHeight = 50;
   const auto WRNG = ConstrainedRNG<0, screenWidth>;
   const auto HRNG = ConstrainedRNG<0, screenHeight>;
-  const Direction
+  const Vector2
     North = {0, -1},
     South = {0, 1},
     East = {1, 0},
     West = {-1, 0};
-  State state = Running;
 
-  Dot food = {WRNG(), HRNG()};
+  auto state = Running;
+  auto food = Vector2{WRNG(), HRNG()};
   auto score = 0;
   auto speed = 10;
-  Snake snake = {vector<Dot>(5, {0, 0}), East};
+  auto snake = Snake{std::vector<Vector2>(5, {0, 0}), East};
 
   InitWindow((screenWidth+1)*dotSize, (screenHeight+1)*dotSize, "SNAKE");
 
@@ -93,7 +76,7 @@ int main(void) {
     else if (IsKeyPressed(KEY_LEFT) && snake.direction != East) snake.direction = West;
 
     auto head = snake.dots.at(0);
-    Dot newHead { head.x + snake.direction.x, head.y + snake.direction.y };
+    auto newHead =  Vector2{ head.x + snake.direction.x, head.y + snake.direction.y };
 
     // Collisions
     if(newHead.x == -1  || newHead.x == screenWidth+1  || newHead.y == -1  || newHead.y == screenHeight+1)
@@ -126,10 +109,10 @@ int main(void) {
 
       foodSprite.frame++;
       Rectangle foodFrame = {
-          foodSprite.frame*foodSprite.frameWidth,
-          0,
-          foodSprite.frameWidth,
-          float(foodSprite.texture.height)
+        foodSprite.frame*foodSprite.frameWidth,
+        0,
+        foodSprite.frameWidth,
+        float(foodSprite.texture.height)
       };
 
       DrawTextureRec(foodSprite.texture, foodFrame, {float(food.x*dotSize), float(food.y*dotSize)}, WHITE);
