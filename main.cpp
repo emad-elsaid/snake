@@ -21,9 +21,30 @@ bool operator==(const Direction &l, const Direction &r) {
   return l.x == r.x && l.y == r.y;
 }
 
+class LimitedInt {
+public:
+  LimitedInt(int max) : v {0}, max {max}{};
+  operator int() const { return v; };
+  LimitedInt& operator++(int) {
+    v++;
+    v %= max;
+    return *this;
+  };
+
+private:
+  int v;
+  int max;
+};
+
 struct Snake {
   vector<Dot> dots;
   Direction direction;
+};
+
+struct Sprite {
+  Texture texture;
+  LimitedInt frame;
+  float frameWidth;
 };
 
 enum State {
@@ -54,10 +75,11 @@ int main(void) {
 
   InitWindow((screenWidth+1)*dotSize, (screenHeight+1)*dotSize, "SNAKE");
 
-  auto foodTexture = LoadTexture("assets/food.png");
-  int foodFrames = 5;
-  int foodCurrentFrame = 0;
-  float foodFrameWidth = static_cast<float>(float(foodTexture.width) / foodFrames);
+  Sprite foodSprite = {
+    .texture = LoadTexture("assets/food.png"),
+    .frame = LimitedInt(5),
+    .frameWidth = 16
+  };
 
   SetTargetFPS(speed);
 
@@ -68,8 +90,8 @@ int main(void) {
     else if (IsKeyPressed(KEY_RIGHT) && snake.direction != West) snake.direction = East;
     else if (IsKeyPressed(KEY_LEFT) && snake.direction != East) snake.direction = West;
 
-    auto &head = snake.dots.at(0);
-    Dot newHead = { head.x + snake.direction.x, head.y + snake.direction.y };
+    auto head = snake.dots.at(0);
+    Dot newHead { head.x + snake.direction.x, head.y + snake.direction.y };
 
     // Collisions
     if(newHead.x == -1  || newHead.x == screenWidth+1  || newHead.y == -1  || newHead.y == screenHeight+1)
@@ -82,8 +104,7 @@ int main(void) {
     if (food.x == head.x + snake.direction.x &&
         food.y == head.y + snake.direction.y) {
       snake.dots.push_back({});
-      food.x = WRNG(gen);
-      food.y = HRNG(gen);
+      food = { WRNG(gen), HRNG(gen) };
       score += 100;
       speed++;
       SetTargetFPS(speed);
@@ -101,15 +122,15 @@ int main(void) {
       ClearBackground(RAYWHITE);
       for (auto &d : snake.dots) DrawRectangle(d.x * dotSize, d.y * dotSize, dotSize, dotSize, GOLD);
 
-      foodCurrentFrame = (foodCurrentFrame+1) % foodFrames;
+      foodSprite.frame++;
       Rectangle foodFrame = {
-          foodCurrentFrame*foodFrameWidth,
+          foodSprite.frame*foodSprite.frameWidth,
           0,
-          foodFrameWidth,
-          float(foodTexture.height)
+          foodSprite.frameWidth,
+          float(foodSprite.texture.height)
       };
 
-      DrawTextureRec(foodTexture, foodFrame, {float(food.x*dotSize), float(food.y*dotSize)}, WHITE);
+      DrawTextureRec(foodSprite.texture, foodFrame, {float(food.x*dotSize), float(food.y*dotSize)}, WHITE);
       DrawText(("SCORE: " + std::to_string(score)).c_str(), dotSize, dotSize, 20, BLACK);
 
       if (state == GameOver)
