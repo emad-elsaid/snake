@@ -25,10 +25,7 @@ struct Sprite {
   Texture texture;
   SpinningInt frame;
   float frameWidth;
-
-  Rectangle operator()(){
-    return Rectangle{frame*frameWidth, 0, frameWidth, float(texture.height)};
-  }
+  Rectangle operator()(){ return Rectangle{frame*frameWidth, 0, frameWidth, float(texture.height)}; }
 };
 
 enum State {
@@ -55,7 +52,6 @@ int main(void) {
     South = {0, 1},
     East = {1, 0},
     West = {-1, 0};
-
   auto state = Running;
   auto food = Vector2{WRNG(), HRNG()};
   auto score = 0;
