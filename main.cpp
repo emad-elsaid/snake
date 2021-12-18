@@ -10,8 +10,7 @@ struct Dot {
 };
 
 struct Direction {
-  int x;
-  int y;
+  int x, y;
 };
 
 bool operator!=(const Direction &l, const Direction &r) {
@@ -32,8 +31,7 @@ public:
   };
 
 private:
-  int v;
-  int max;
+  int v, max;
 };
 
 struct Snake {
@@ -52,23 +50,28 @@ enum State {
   GameOver
 };
 
-int main(void) {
-  Direction North = {0, -1};
-  Direction South = {0, 1};
-  Direction East = {1, 0};
-  Direction West = {-1, 0};
+template <int min, int max>
+int ConstrainedRNG() {
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  static std::uniform_int_distribution<int> rng(min, max);
+  return rng(gen);
+}
 
-  State state = Running;
+int main(void) {
   const int dotSize = 16;
   const int screenWidth = 50;
   const int screenHeight = 50;
+  const auto WRNG = ConstrainedRNG<0, screenWidth>;
+  const auto HRNG = ConstrainedRNG<0, screenHeight>;
+  const Direction
+    North = {0, -1},
+    South = {0, 1},
+    East = {1, 0},
+    West = {-1, 0};
+  State state = Running;
 
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_int_distribution<int> WRNG(0, screenWidth);
-  std::uniform_int_distribution<int> HRNG(0, screenHeight);
-
-  Dot food{WRNG(gen), HRNG(gen)};
+  Dot food = {WRNG(), HRNG()};
   auto score = 0;
   auto speed = 10;
   Snake snake = {vector<Dot>(5, {0, 0}), East};
@@ -77,7 +80,7 @@ int main(void) {
 
   Sprite foodSprite = {
     .texture = LoadTexture("assets/food.png"),
-    .frame = LimitedInt(5),
+    .frame = {5},
     .frameWidth = 16
   };
 
@@ -104,7 +107,7 @@ int main(void) {
     if (food.x == head.x + snake.direction.x &&
         food.y == head.y + snake.direction.y) {
       snake.dots.push_back({});
-      food = { WRNG(gen), HRNG(gen) };
+      food = { WRNG(), HRNG() };
       score += 100;
       speed++;
       SetTargetFPS(speed);
@@ -139,6 +142,6 @@ int main(void) {
     EndDrawing();
   }
 
-    CloseWindow();
-    return 0;
+  CloseWindow();
+  return 0;
 }
