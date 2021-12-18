@@ -62,15 +62,14 @@ int main(void) {
   SetTargetFPS(speed);
 
   while (!WindowShouldClose()) {
-
-    auto &head = snake.dots.at(0);
-    Dot newHead = { head.x + snake.direction.x, head.y + snake.direction.y };
-
     // Controls
     if (IsKeyPressed(KEY_DOWN) && snake.direction != North) snake.direction = South;
     else if (IsKeyPressed(KEY_UP) && snake.direction != South) snake.direction = North;
     else if (IsKeyPressed(KEY_RIGHT) && snake.direction != West) snake.direction = East;
     else if (IsKeyPressed(KEY_LEFT) && snake.direction != East) snake.direction = West;
+
+    auto &head = snake.dots.at(0);
+    Dot newHead = { head.x + snake.direction.x, head.y + snake.direction.y };
 
     // Collisions
     if(newHead.x == -1  || newHead.x == screenWidth+1  || newHead.y == -1  || newHead.y == screenHeight+1)
