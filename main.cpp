@@ -25,6 +25,10 @@ struct Sprite {
   Texture texture;
   SpinningInt frame;
   float frameWidth;
+
+  Rectangle operator()(){
+    return Rectangle{frame*frameWidth, 0, frameWidth, float(texture.height)};
+  }
 };
 
 enum State {
@@ -106,18 +110,9 @@ int main(void) {
     {
       ClearBackground(RAYWHITE);
       for (auto &d : snake.dots) DrawRectangle(d.x * dotSize, d.y * dotSize, dotSize, dotSize, GOLD);
-
       foodSprite.frame++;
-      Rectangle foodFrame = {
-        foodSprite.frame*foodSprite.frameWidth,
-        0,
-        foodSprite.frameWidth,
-        float(foodSprite.texture.height)
-      };
-
-      DrawTextureRec(foodSprite.texture, foodFrame, {float(food.x*dotSize), float(food.y*dotSize)}, WHITE);
+      DrawTextureRec(foodSprite.texture, foodSprite(), {float(food.x*dotSize), float(food.y*dotSize)}, WHITE);
       DrawText(("SCORE: " + std::to_string(score)).c_str(), dotSize, dotSize, 20, BLACK);
-
       if (state == GameOver)
         DrawText("GAME OVER", GetScreenWidth() / 2 - 80, GetScreenHeight() / 2, 20, BLACK);
     }
